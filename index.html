@@ -9,125 +9,133 @@
 <body>
     <script>
         let _html = {};
-        let _request = {};
+let _request = {};
 
-        _html.buttons =
-          "<h1>Work with REST API</h1><hr/>" +
-          "<button id='getAssets'>GET Assets</button>";
+_html.buttons =
+  "<h1>Work with REST API</h1><hr/>" +
+  "<button id='getAssets'>GET Assets</button>";
 
-        function _appendDOM(_obj) {
-          document.getElementsByTagName("body")[0].innerHTML = _obj;
+function _appendDOM(_obj) {
+  document.getElementsByTagName("body")[0].innerHTML = _obj;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  console.log("Script started!");
+
+  _appendDOM(_html.buttons);
+
+  document.getElementById("getAssets").addEventListener("click", function () {
+    _request.getAssets();
+  });
+});
+
+// Запрос информации об активах через REST
+_request.getAssets = function () {
+  fetch("https://api.opensea.io/api/v1/assets?format=json", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  })
+    .then((data) => data.json()) // преобразовываем JSON в массив объектов
+    .then((data) => data.assets) // считываем только поле assets и отправлем его в качестве результата
+    .then((data) => {
+      // Получаю объекты "asset_contract"
+      let assetContracts = data.map((element) => element.asset_contract);
+      // получаю значение поля "address"
+      let assetContractAddresses = assetContracts.map((element) => element.address);
+      // Преобразовываю массив значений в набор уникальных значений
+      let unicalAssetContractAddresses = new Set(assetContractAddresses);
+      // Выводим в консоль набор отфильтрованных значений
+      console.log("unicalAssetContractAddresses = ", unicalAssetContractAddresses);
+      // Для удобства последующей обработки, преобразовываю Set в Array
+      let unicalAssetContractAddressesArray = Array.from(unicalAssetContractAddresses);
+      
+      // Получаю объекты "owners"
+      let owners = data.map((element) => element.owner);
+      // получаю значение поля "address"
+      let ownerAddresses = owners.map((element) => element.address);
+      // Преобразовываю массив значений в набор уникальных значений
+      let unicalOwnerAddresses = new Set(ownerAddresses);
+      // Выводим в консоль набор отфильтрованных значений
+      console.log("unicalOwnerAddresses = ", unicalOwnerAddresses);
+      // Для удобства последующей обработки, преобразовываю Set в Array
+      let unicalOwnerAddressesArray = Array.from(unicalOwnerAddresses); // Здесь появляется адрес 0x0000000000000000000000000000000000000000
+
+      // Получаю объекты "creator"
+      let creators = data.map((element) => element.creator);
+      // получаю значение поля "address"
+      let creatorAddresses = creators.map((element) => element.address);
+      // Преобразовываю массив значений в набор уникальных значений
+      let unicalCreatorAddresses = new Set(creatorAddresses);
+      // Выводим в консоль набор отфильтрованных значений
+      console.log("unicalCreatorAddresses = ", unicalCreatorAddresses);
+      // Для удобства последующей обработки, преобразовываю Set в Array
+      let unicalCreatorAddressesArray = Array.from(unicalCreatorAddresses);
+
+      // В результирующий массив помещаю 
+//       let addresses = [
+//         ...unicalAssetContractAddressesArray,
+//         // ...unicalOwnerAddressesArray, // Здесь содержится адрес 0x0000000000000000000000000000000000000000
+//         ...unicalCreatorAddressesArray,
+//       ];
+      
+      let addresses = [
+         '0xbb42357e82a882d44bbbe2920e8c559361207be1', 
+         '0xceb77c36016cb6f4f50dd2606895c5bd631dbd11'
+      ];
+      
+      
+      
+      // Массив найденных адресов
+      console.log("addresses = ", addresses);
+      // Передаем адреса в следующий then 
+      return addresses;
+    })
+    .then((data) => {
+      // Получаем балансы для ранее полученных адресов
+      _request.getAddressesBalances(data);      
+    });
+};
+
+_request.getAddressesBalances = function (data) {
+  // Объявляем результирующий массив
+  let accountBalances = [];
+  let address = "";
+  // Перебираем массив адресов
+  for (let index = 0; index < data.length; index++) {
+    address = data[index];
+    // Делаем задержку, чтобы не посылать слишком частые запросы
+    setTimeout(function () { 
+      // Запрашиваем данные (в т.ч. о балансах по запрашиваемым адресам)
+      fetch(
+        "https://api.ethplorer.io/getAddressInfo/" + data[index] + "?apiKey=freekey",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
         }
-
-        document.addEventListener("DOMContentLoaded", function () {
-          console.log("Script started!");
-
-          _appendDOM(_html.buttons);
-
-          document.getElementById("getAssets").addEventListener("click", function () {
-            _request.getAssets();
-          });
-        });
-
-        // Запрос информации об активах через REST
-        _request.getAssets = function () {
-          fetch("https://api.opensea.io/api/v1/assets?format=json", {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-            },
-          })
-            .then((data) => data.json()) // преобразовываем JSON в массив объектов
-            .then((data) => data.assets) // считываем только поле assets и отправлем его в качестве результата
-            .then((data) => {
-              // Получаю объекты "asset_contract"
-              let assetContracts = data.map((element) => element.asset_contract);
-              // получаю значение поля "address"
-              let assetContractAddresses = assetContracts.map((element) => element.address);
-              // Преобразовываю массив значений в набор уникальных значений
-              let unicalAssetContractAddresses = new Set(assetContractAddresses);
-              // Выводим в консоль набор отфильтрованных значений
-              console.log("unicalAssetContractAddresses = ", unicalAssetContractAddresses);
-              // Для удобства последующей обработки, преобразовываю Set в Array
-              let unicalAssetContractAddressesArray = Array.from(unicalAssetContractAddresses);
-
-              // Получаю объекты "owners"
-              let owners = data.map((element) => element.owner);
-              // получаю значение поля "address"
-              let ownerAddresses = owners.map((element) => element.address);
-              // Преобразовываю массив значений в набор уникальных значений
-              let unicalOwnerAddresses = new Set(ownerAddresses);
-              // Выводим в консоль набор отфильтрованных значений
-              console.log("unicalOwnerAddresses = ", unicalOwnerAddresses);
-              // Для удобства последующей обработки, преобразовываю Set в Array
-              let unicalOwnerAddressesArray = Array.from(unicalOwnerAddresses); // Здесь появляется адрес 0x0000000000000000000000000000000000000000
-
-              // Получаю объекты "creator"
-              let creators = data.map((element) => element.creator);
-              // получаю значение поля "address"
-              let creatorAddresses = creators.map((element) => element.address);
-              // Преобразовываю массив значений в набор уникальных значений
-              let unicalCreatorAddresses = new Set(creatorAddresses);
-              // Выводим в консоль набор отфильтрованных значений
-              console.log("unicalCreatorAddresses = ", unicalCreatorAddresses);
-              // Для удобства последующей обработки, преобразовываю Set в Array
-              let unicalCreatorAddressesArray = Array.from(unicalCreatorAddresses);
-
-              // В результирующий массив помещаю 
-              let addresses = [
-                ...unicalAssetContractAddressesArray,
-                // ...unicalOwnerAddressesArray, // Здесь содержится адрес 0x0000000000000000000000000000000000000000
-                ...unicalCreatorAddressesArray,
-              ];
-              // Массив найденных адресов
-              console.log("addresses = ", addresses);
-              // Передаем адреса в следующий then 
-              return addresses;
-            })
-            .then((data) => {
-              // Получаем балансы для ранее полученных адресов
-              _request.getAddressesBalances(data);      
-            });
-        };
-
-        _request.getAddressesBalances = function (data) {
-          // Объявляем результирующий массив
-          let accountBalances = [];
-          // Перебираем массив адресов
-          for (let index = 0; index < data.length; index++) {
-            // Делаем задержку, чтобы не посылать слишком частые запросы
-            setTimeout(function () { 
-              // Запрашиваем данные (в т.ч. о балансах по запрашиваемым адресам)
-              fetch(
-                "https://api.ethplorer.io/getAddressInfo/" + data[index] + "?apiKey=freekey",
-                {
-                  method: "GET",
-                  headers: {
-                    Accept: "application/json",
-                  },
-                }
-              )
-                // Если происходит ошибка при получении информации, то ее обрабатываем
-                .catch((reject) => console.log("GET Link Error: " + reject)) 
-                // преобразовываем JSON в массив объектов
-                .then((response) => response.json()) 
-                // Получаем объект "ETH"
-                .then((data) => data.ETH) 
-                // Ловим ошибку получения блока ЕТН
-                .catch((reject) => console.log("ETH Error: " + reject)) 
-                // Из блока  "ETH" получаем значение баланса
-                .then((data) => {
-                  // формируем объект (состоящий из кода адреса и суммы баланса) и помещаем его в массив
-                  let address = data[index];
-                  let balance = data.balance;
-                  accountBalances.push({ "address": address, "balance": balance }); 
-                })
-                .catch((reject) => console.log("Error of address processing: " + reject));
-            }, 1000);
-          }
-          // Выводим требуемый массив
-          console.log("accountBalances = ", accountBalances);
-        }
+      )
+        // Если происходит ошибка при получении информации, то ее обрабатываем
+        .catch((reject) => console.log("GET Link Error: " + reject)) 
+        // преобразовываем JSON в массив объектов
+        .then((response) => response.json()) 
+        // Получаем объект "ETH"
+        .then((data) => data.ETH) 
+        // Ловим ошибку получения блока ЕТН
+        .catch((reject) => console.log("ETH Error: " + reject)) 
+        // Из блока  "ETH" получаем значение баланса
+        .then((data) => {
+          // формируем объект (состоящий из кода адреса и суммы баланса) и помещаем его в массив
+          accountBalances.push({ "address": address, "balance": data.balance }); 
+        })
+        .catch((reject) => console.log("Error of address processing: " + reject));
+    }, 1000);
+  }
+  // Выводим требуемый массив
+  console.log("accountBalances = ", accountBalances);
+}
     </script>
 </body>
 </html>
