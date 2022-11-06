@@ -74,19 +74,11 @@
               let unicalCreatorAddressesArray = Array.from(unicalCreatorAddresses);
 
               // В результирующий массив помещаю 
-        //       let addresses = [
-        //         ...unicalAssetContractAddressesArray,
-        //         // ...unicalOwnerAddressesArray, // Здесь содержится адрес 0x0000000000000000000000000000000000000000
-        //         ...unicalCreatorAddressesArray,
-        //       ];
-
               let addresses = [
-                 '0xbb42357e82a882d44bbbe2920e8c559361207be1', 
-                 '0xceb77c36016cb6f4f50dd2606895c5bd631dbd11'
+                ...unicalAssetContractAddressesArray,
+                // ...unicalOwnerAddressesArray, // Здесь содержится адрес 0x0000000000000000000000000000000000000000
+                ...unicalCreatorAddressesArray,
               ];
-
-
-
               // Массив найденных адресов
               console.log("addresses = ", addresses);
               // Передаем адреса в следующий then 
@@ -127,8 +119,9 @@
                 .catch((reject) => console.log("ETH Error: " + reject)) 
                 // Из блока  "ETH" получаем значение баланса
                 .then((data) => {
+                  let balance = data.balance;
                   // формируем объект (состоящий из кода адреса и суммы баланса) и помещаем его в массив
-                  accountBalances.push({ "address": address, "balance": data.balance }); 
+                  accountBalances.push({ "address": address, "balance": balance }); 
                 })
                 .catch((reject) => console.log("Error of address processing: " + reject));
             }, 1000);
